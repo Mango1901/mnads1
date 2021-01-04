@@ -1,4 +1,5 @@
-var io = require('socket.io')(6001)
+var  io = require("socket.io")(6001);
+// var io = require('socket.io')
 console.log('Connected to port 6001');
 io.on('error',function (socket) {
     console.log('error')
@@ -7,7 +8,7 @@ io.on('connection',function (socket) {
     console.log('Co người vừa kết nối'+socket.id)
 });
 var Redis= require('ioredis');
-var redis = new Redis(1000);
+var redis = new Redis(6379);
 redis.psubscribe('*',function (error,count) {
 
 });

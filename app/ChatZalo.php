@@ -14,7 +14,9 @@ class ChatZalo extends Model
      * @var string
      */
     protected $table = 'chatzalo';
-
+    protected $fillable=[
+      'user_id','zalo_name','status','zalo_title'
+    ];
     /**
      * The database primary key value.
      *

@@ -2,88 +2,172 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\GoogleLogin;
+use App\Repository\UserRepository;
+use App\Social;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
-use App\Users;
 use Illuminate\Support\Facades\Auth;
 use App\Validations\Validation;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public $data;
-    private $perPage;
-    private $model;
-    public function __construct()
+
+    protected $_userRepository;
+
+    /**
+     * UserController constructor.
+     * @param UserRepository $userRepository
+     */
+
+    public function __construct(UserRepository $userRepository)
     {
-        $this->perPage  = config('admin.per_page');
-        $this->model    = new Users();
-        $this->data['controller'] = __CLASS__;
+        $this->_userRepository = $userRepository;
     }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|\Illuminate\View\View
+     */
     public function index(Request $request)
     {
-        $requestData=$request->all();
-        if(isset($requestData['seach_user'])&&!empty($requestData['seach_user'])){
-            $username=$requestData['seach_user'];
-            $this->data['data']=$this->model->where('username','like',"%{$username}%")->orwhere('email','like',"%{$username}%")->get();
-            return view('user.index', $this->data);
+        if(Gate::allows('is-admin')){
+            $requestData=$request->all();
+            if(isset($requestData['search_user'])&&!empty($requestData['search_user'])){
+                $information=$requestData['search_user'];
+                $getUser =  $this->_userRepository->getUserInformation($information);
+                return view('user.index', compact('getUser'));
+            }
+            $getUser = $this->_userRepository->getAllUser();
+            view('admin_user_layout',compact('getUser'));
+            return view('user.index', compact('getUser'));
+        }else{
+            return redirect('dashboard')->with('error','You dont have permission to sign in');
         }
-       $this->data['data'] = $this->model->get();
-        view('admin_user_layout',$this->data);
-       return view('user.index', $this->data);
     }
 
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function create()
+    {
+        return view("user.create");
+    }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function store( Request $request)
     {
         $requestData = $request->all();
+        Validator::extend('without_spaces', function($attr, $value){
+            return preg_match('/^\S*$/u', $value);
+        });
         $validator = Validation::validateSignupRequest($request);
-
         if ($validator->fails()) {
             return redirect('user/create')
                 ->withErrors($validator)
                 ->withInput();
         }
-        Users::insert(
-            array('username'=>$requestData['username'],'password'=>bcrypt($requestData['password']),'email'=>$requestData['email'],'fullname'=>$requestData['fullname'] ,'website'=>$requestData['website'],'token'=>Str::random(60))
-        //,'start_time'=>$requestData['start_time'],'active'=>$requestData['active'])
-        );
-
-      return redirect('/user/index');
+        $check_users_email = $this->_userRepository->CheckEmail($requestData['email']);
+        $check_users_name = $this->_userRepository->CheckUserName($requestData['username']);
+        if ($check_users_email) {
+            return redirect('user/create')->with('error', 'This email had already been used');
+        }
+        if ($check_users_name) {
+            return redirect('user/create')->with('error', 'This username had already been used');
+        }
+        if(isset($requestData['active'])){
+            $requestData['active'] = 1;
+        }else{
+            $requestData['active'] = 0;
+        }
+        $this->_userRepository->CreateUserAdmin($requestData['username'],$requestData['password'],$requestData['email'],$requestData['fullname'],$requestData['website'],$requestData['active']);
+        return redirect('/user/index')->with('message','Add user information successfully');
     }
-    public function edit(Request $request, $id) {
 
-        $this->data['data'] = $this->model->where('id',$id)->first();
+    /**
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function edit($id) {
 
-        return view('user.update',$this->data);
+        $edit = $this->_userRepository->getById($id);
+
+        return view('user.update',compact('edit'));
     }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function update(Request $request){
 
         $requestData = $request->all();
+        Validator::extend('without_spaces', function($attr, $value){
+            return preg_match('/^\S*$/u', $value);
+        });
+        $validator = Validation::validateUpdateRequest($request);
+        $check_users_email = $this->_userRepository->CheckEmailUpdate($requestData['id'],$requestData['email']);
+        $check_users_name = $this->_userRepository->CheckUsernameUpdate($requestData['id'],$requestData['username']);
+        if ($check_users_email) {
+            return redirect('user/edit'.$requestData['id'])->with('error', 'This email had already been used');
+        }
+        if ($check_users_name) {
+            return redirect('user/edit'.$requestData['id'])->with('error', 'This username had already been used');
+        }
+        if ($validator->fails()) {
+            return redirect('user/index')
+                ->withErrors($validator)
+                ->withInput();
+        }
+        if(isset($requestData['active'])){
+            $requestData['active'] = 1;
+            Session::put("active",$requestData['active']);
+        }else{
+            $requestData['active'] = 0;
+            Session::put("active",$requestData['active']);
+        }
+        $this->_userRepository->updateUser($requestData['id'],$requestData['username'],$requestData['email'],$requestData['fullname'],$requestData['website'],$requestData['active']);
 
-      $this->model->where('id',$requestData['id'])->update(
-            array('email'=>$requestData['email'],'fullname'=>$requestData['fullname'] ,'website'=>$requestData['website'],'active'=>$requestData['active']
-            ));
-
-         return redirect('/user/index');
+        return redirect('/user/index')->with('message','Update user information successfully');
     }
+
+    /**
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function delete(Request $request, $id)
     {
-      $this->model->where('id', $id)->delete();
+        $this->_userRepository->deleteUser($id);
 
-      return redirect('user/index');
+        return redirect('user/index')->with('message','Delete user information successfully');
     }
 
-
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function profile() {
 
         $user_id = Auth::user()->id;
 
-        $this->data['data'] = $this->model->where('id',$user_id)->first();
 
-        return view('user.usersetting', $this->data);
+        $profile = $this->_userRepository->getById($user_id);
+
+        return view('user.usersetting', compact('profile'));
 
     }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
 
     public function updateprofile(Request $request) {
 
@@ -92,35 +176,37 @@ class UserController extends Controller
         $user_id = Auth::user()->id;
 
         $requestData = $request->all();
-
-         request()->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        request()->validate([
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-
-
-        $path = "";
         if($request->hasFile("image")){
-            $path = $request->file('image')->store('/public/avatar');
-            $path = str_replace("public", "", $path);
+            $get_name_image = $request->file('image')->getClientOriginalName();
+            $name_image = current(explode('.',$get_name_image));
+            $new_image = $name_image.str::random(60).'.'.$request->file('image')->getClientOriginalExtension();
+            $request->file('image')->move('public/avatar/',$new_image);
+
+            $this->_userRepository->updateProfileWithAvatar($user_id,$requestData['fullname'],$requestData['website'],$requestData['company_name'],$requestData['description'],$new_image);
         }
+        $this->_userRepository->updateProfileWithoutAvatar($user_id,$requestData['fullname'],$requestData['website'],$requestData['company_name'],$requestData['description']);
 
-        $this->model->where('id',$user_id)->update(
-            array('fullname'=>$requestData['fullname'],'website'=>$requestData['website'], 'company_name'=>$requestData['company_name'],'description'=>$requestData['description'],'avatar' => $path)
-        );
-
-         return redirect('dashboard');
+        return redirect('chart/index')->with('message','Update profile successfully');
 
     }
 
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function showpassword() {
         $user_id = Auth::user()->id;
 
-        $this->data['data'] = $this->model->where('id',$user_id)->first();
-
-        return view('user.changepassword', $this->data);
+        $show_password = $this->_userRepository->getById($user_id);
+            return view('user.changepassword',compact('show_password'));
     }
 
-
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function changepassword(Request $request){
 
         $requestData = $request->all();
@@ -129,37 +215,51 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return redirect('user/showpassword')
-                        ->withErrors($validator)
-                        ->withInput();
+                ->withErrors($validator)
+                ->withInput();
         }
 
-
         $user_id = Auth::user()->id;
-        $user = Users::where('id', $user_id)->first();
+        $user =$this->_userRepository->getById($user_id);
 
         $passwordmahoa  = $requestData["oldpassword"];
 
         if (Hash::check($passwordmahoa, $user->password)) {
 
             // The passwords match...
-            $this->model->where('id',$user_id)->update(
-            array('password'=> bcrypt($requestData['password'])
-            ));
+            $this->_userRepository->ChangePassword($user_id,$requestData['password']);
 
             return redirect('user/showpassword')->with('status','Change password success!');
 
         } else{
             return redirect('user/showpassword')->with('status','Old password fails');
         }
-
-        return redirect('dashboard');
     }
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     //Logout
     public function logout(Request $request) {
         Auth::logout();
-        return redirect('/login');
+        Session::put("paginate",1);
+        return redirect('/login')->with('message','Logout successfully');
     }
 
-
-
+    public function change_user($id){
+        if(Gate::allows("is-admin")){
+            $getSpecificUser = $this->_userRepository->getById($id);
+            if($getSpecificUser->hasVerifiedEmail()){
+                if(Auth::loginUsingId($getSpecificUser->id)){
+                    return redirect("dashboard")->with("message","Change user successfully");
+                }else{
+                    return redirect("login")->with("error","login fail");
+                }
+            }else{
+                return redirect("dashboard")->with("error","This account has not been verifying email ");
+            }
+        }else{
+            return redirect("dashboard")->with("error","You did not have roles to do this function");
+        }
+    }
 }

@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Http\ViewComposers;
+
 use App\Chat;
+use App\GoogleLogin;
+use App\Social;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\View\View;
 //use Illuminate\Users\Repository as UserRepository;
@@ -42,7 +45,7 @@ class ProfileComposer
         //die();
 
         $view->with('data', $data);
-        $data1=Chat::all();
-        $view->with('data1',$data1);
+        $data1 = Chat::all();
+        $view->with('data1', $data1);
     }
 }

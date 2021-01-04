@@ -13,6 +13,9 @@ class ChatFaceBook extends Model
      * @var string
      */
     protected $table = 'chatfb';
+    protected $fillable=[
+      'user_id','facebook_id','status','facebook_title'
+    ];
 
     /**
      * The database primary key value.

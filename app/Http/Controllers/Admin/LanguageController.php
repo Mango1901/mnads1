@@ -10,6 +10,6 @@ class LanguageController extends Controller
         if($language){
             Session::put('language',$language);
         }
-        return redirect()->back();
+        return redirect()->back()->with('message','Change language successfully');
     }
 }

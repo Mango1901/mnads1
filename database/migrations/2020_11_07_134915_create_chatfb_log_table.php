@@ -19,11 +19,12 @@ class CreateChatfbLogTable extends Migration
             $table->BigInteger('facebook_id')->unsigned();
             $table->String('ip');
             $table->String('location');
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('chatfb_log',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

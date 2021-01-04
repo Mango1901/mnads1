@@ -21,12 +21,12 @@ class CreateGoogleAdsTable extends Migration
             $table->String('refresh_token');
             $table->String('scope',100);
             $table->String('token_type',25);
-            $table->BigInteger('authentication_id')->unsigned();
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('google_ads',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

@@ -1,0 +1,191 @@
+body {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+a{
+    color: black;
+    text-decoration: none;
+}
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f5f5f5;
+    z-index: 1;
+    list-style: none;
+    box-shadow: 1px 1px 5px #95999c;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.title-left {
+    font-size: 36px;
+    line-height: 52px;
+    color: #2d3e50;
+}
+
+.description-left {
+    font-size: 18px;
+    line-height: 27px;
+    color: #929aae;
+}
+
+.padd {
+    padding-top: 120px;
+    padding-bottom: 120px;
+}
+.session-header{
+    margin-bottom:20px
+}
+.feature{
+    margin:30px 0 15px 0
+}
+.btn-purple{
+    color:#fff;
+    border-color:#005cbf;
+    background-color:#005cbf;
+    font-weight:bold;
+    padding:18px 22px;
+}
+.btn-purple:hover{
+    color: #fff;
+}
+.btn-clip{
+    border-color:#005cbf;
+    color:#005cbf;
+    font-weight:bold;
+    padding:18px 22px;
+}
+@media (max-width: 768px) {
+    #banner{
+        text-align: center;
+    }
+    .col-md-12{
+        text-align: center;
+    }
+}
+.before-left{
+    font-size:14px;
+    color:#929aae;
+}
+.banner-right{
+
+}
+.img1{
+    max-width: 80%;
+    display: block;
+    height: auto;
+}
+.number{
+    text-align:center;
+    margin:15px 0
+}
+.number i{
+    color:#6195ff;
+    font-size:36px;
+    margin-bottom:20px
+}
+.bgr{
+    background-color:#f5f8fa;
+}
+.title{
+    margin:20px 0px;
+    font-size:40px;
+    line-height:54px;
+    padding:0 15px
+}
+.title-sub{
+    font-size:18px;
+    line-height:36px;
+    color:#929aae;
+    font-weight:400;
+    margin-bottom:10px;
+
+}
+@media only screen and (min-width:1024px) {
+    .box-tool {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+.tool-content:hover{
+    box-shadow:0 10px 50px -5px #95999c;
+    -webkit-transform:scale(1.014);
+    transform:scale(1.014);
+}
+#tool .tool-content {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 11px #eaf0f6;
+    background-color: #fff;
+}
+.tool-content-title{
+    margin-top:30px;
+    color:#1d243e;
+    font-size:24px;
+    line-height:36px;
+    padding:0 20px;
+    display:inline-block
+}
+.product-content {
+    padding: 0px 32px;
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 24px;
+}
+.bgr_footer{
+    background-color:#1d243e;
+    color: white;
+}
+.bgr_footer a{
+    color: white;
+}
+.font_footer{
+    font-size: 12px;
+}
+.nav-link:hover{
+    color: #005cbf;
+}
+#problem-googleads-using .problem-googleads-seal-infor {
+    font-weight: bold;
+    font-size: 16px;
+    color: #6c738d;
+    margin-left: 3px;
+}
+#problem-googleads-using .problem-googleads-header {
+    position: relative;
+    margin-bottom: 25px;
+    margin-top: 25px;
+}
+.number{
+    text-align:center;
+    margin:15px 0;
+}
+#problem-googleads-using .benefit-content img {
+    display: inline-block;
+    /*height: 64px;
+    width: 64px;*/
+}
+
+#problem-googleads-using .benefit-content p.benefit-content-title {
+    margin: -24px 0 8px 0;
+    font-size: 24px;
+    line-height: 32px;
+    color: #1D243E;
+}
+#problem-googleads-using .benefit-content span.benefit-content-con {
+    color: #6c738d;
+    font-size: 16px;
+    line-height: 25px;
+}
+.cl-B9256A {
+    color: #005cbf;
+}

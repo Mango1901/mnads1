@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\ActiveExpired;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -13,7 +14,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        ActiveExpired::class,
     ];
 
     /**
@@ -24,9 +25,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('backup:clean --disable-notifications')->dailyAt("01:52");
+        $schedule->command('backup:run --only-db --disable-notifications')->dailyAt("01:53");
+        $schedule->command('ActiveExpired:call')->dailyAt("11:10");
+        $schedule->command('CheckTokenExpired:check')->dailyAt("11:12");
     }
-
     /**
      * Register the commands for the application.
      *

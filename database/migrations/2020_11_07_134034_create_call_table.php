@@ -16,14 +16,15 @@ class CreateCallTable extends Migration
         Schema::create('call', function (Blueprint $table) {
             $table->id();
             $table->BigInteger('user_id')->unsigned();
-            $table->string('name');
-            $table->string('phone_number',11);
-            $table->string('description');
+            $table->string('name')->nullable();
+            $table->string('phone_number',14);
+            $table->string('description')->nullable();
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('call',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

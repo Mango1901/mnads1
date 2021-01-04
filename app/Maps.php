@@ -15,6 +15,9 @@ class Maps extends Model
      */
 
     protected $table = 'maps';
+    protected $fillable=[
+      'user_id','map','status','map_title'
+    ];
 
     /**
      * The database primary key value.

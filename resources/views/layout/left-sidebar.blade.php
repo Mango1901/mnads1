@@ -20,21 +20,20 @@
     </li>
 
     <!--Setting user -->
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true"
-           aria-controls="collapseTwo">
+    <li class="nav-item ">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
+           aria-controls="collapseOne">
             <i class="fas fa-fw fa-cog"></i>
             <span>{{trans('message.user')}}</span>
         </a>
-        <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{route('second', ['call', 'index'])}}"><i class="fas fa-phone-square-alt"></i> {{trans('message.call')}}</a>
                 <a class="collapse-item" href="{{route('second', ['chatfacebook', 'index'])}}"><i class="fab fa-facebook-square"></i> {{trans('message.fbchat')}}</a>
                 <a class="collapse-item" href="{{route('second', ['chatzalo', 'index'])}}"><i class="fas fa-comments"></i> {{trans('message.zalochat')}}</a>
                 <a class="collapse-item" href="{{route('second', ['contact', 'index'])}}"><i class="fas fa-address-book"></i> {{trans('message.contact')}}</a>
                 <a class="collapse-item" href="{{route('second', ['maps', 'index'])}}"><i class="fas fa-map-marker-alt"></i> {{trans('message.map')}}</a>
-                <a class="collapse-item" href="{{route('google.report.list')}}"><i class="fas fa-map-marker-alt"></i> {{trans('message.getReport1')}}</a>
-
+                <a class="collapse-item" href="{{route('googleAds.index')}}"><i class="fas fa-map-marker-alt"></i> {{trans('message.getReport1')}}</a>
             </div>
         </div>
     </li>
@@ -57,16 +56,19 @@
         </div>
     </li>
 
+
     <!-- Nav Item - Dashboard -->
-    <li class="nav-item active">
 
 
         <!-- Nav Item - Charts -->
+    @can('is-admin')
+        <li class="nav-item active">
     <li class="nav-item">
         <a class="nav-link" href="{{route('second', ['user', 'index'])}}">
             <i class="fas fa-users"></i>
             <span>{{trans('message.userinfo')}}</span></a>
     </li>
+    @endcan
 
 
     <!-- Divider -->

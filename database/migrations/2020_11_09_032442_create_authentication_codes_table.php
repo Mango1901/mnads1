@@ -17,14 +17,12 @@ class CreateAuthenticationCodesTable extends Migration
             $table->id();
             $table->BigInteger('user_id')->unsigned();
             $table->string('Code');
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('authentication_codes',function (Blueprint $table){
             $table->foreign('user_id')->references('id')->on('users');
-        });
-        Schema::table('google_ads',function (Blueprint $table){
-            $table->foreign('authentication_id')->references('id')->on('authentication_codes');
         });
     }
 

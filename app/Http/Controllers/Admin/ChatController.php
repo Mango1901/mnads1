@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 
+use App\User;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Chat;
 use Illuminate\Support\Facades\Auth;
@@ -20,18 +22,15 @@ class ChatController extends Controller
     }
 
     public function index(){
-        $this->data['data']=$this->model->join('users','users.id','=','chats.author')->get();
+        $this->data['data'] = $this->model->join('users','users.username','=','chats.author')->where('status',0)->get();
         $this->data['author']=Auth::user()->username;
         return view('layout.chat',$this->data);
     }
 
-    public function store( $requestData){
-
+    public function store($requestData){
          $chats=Chat::create($requestData);
         event(
             $e=new ChatEvent($chats)
         );
-
     }
-
 }

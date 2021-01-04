@@ -13,7 +13,9 @@ class Contact extends Model
      * @var string
      */
     protected $table = 'lienhe';
-
+    protected $fillable=[
+      'id','user_id','title','number','description','status'
+    ];
     /**
      * The database primary key value.
      *

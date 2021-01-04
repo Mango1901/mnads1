@@ -6,7 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
 
     use Notifiable;
@@ -26,7 +26,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'username', 'email', 'password',
+        'name','username', 'email','fullname','website','token','token_expired','company_name','email_verified_at',
+        'description','avatar','start_time','active','active_expired','password','status','roles','provider','provider_id'
     ];
 
     /**

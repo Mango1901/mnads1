@@ -31,13 +31,15 @@ class CreateGooglereportsTable extends Migration
             $table->String('clicks_tablet',30);
             $table->String('cost_tablet',50);
             $table->String('ctr_tablet');
+            $table->String('averageCpc_tablet');
             $table->String('impressions_tablet');
             $table->String('segments_tablet');
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('google_reports',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

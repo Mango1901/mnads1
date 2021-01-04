@@ -1,6 +1,6 @@
 @extends('admin_layout', ['title' => 'Maps'])
 @section('content')
-<form class="outer-repeater needs-validation" id="update-user" action="{{action('Admin\MapsController@update')}}"  novalidate  method="post">
+<form class="outer-repeater needs-validation" id="update-user" action="{{route("maps.update")}}"  novalidate  method="post">
     {{ csrf_field() }}
     <!-- Start Content-->
     <div class="container-fluid">
@@ -12,18 +12,40 @@
                     <h4 class="page-title">{{trans('message.update')}}</h4>
                 </div>
             </div>
+            @if ($errors->any())
+                <section class="alert alert-danger">
+                    <div class="container">
+                        <div class="columns is-centered">
+                            <div class="column is-6">
+                                <div class="notification is-danger">
+                                    <ul>
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            @endif
         </div>
         <!-- end page title -->
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card" style="height: 100%" id="loader">
                     <div class="card-body">
-                <input type="hidden" value="{{$data->id}}" id="id" name="id">
+                <input type="hidden" value="{{$editMaps->id}}" id="id" name="id">
                         <div class="row">
                             <div class="col-xl-9">
                                 <div class="form-group">
-                                    <label for="map">{{trans('message.map')}}<span class="red">*</span></label>
-                                    <textarea rows="10" name="map" id="map" class="form-control" required>{{$data->map}}</textarea>
+                                    <label for="map">{{__('map_title')}}<span class="red">*</span></label>
+                                    <input type="text" id="map"  name="map_title" class="form-control" required minlength="1" value="{{$editMaps->map_title}}" maxlength="50">
+                                    <div class="invalid-feedback">Nhập map</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="map">{{__('message.map')}}<span class="red">*</span></label>
+                                    <textarea rows="10" name="map" id="map" class="form-control" minlength="1" required>{{$editMaps->map}}</textarea>
                                      <div class="invalid-feedback">Nhập map</div>
                                 </div>
 
@@ -66,7 +88,7 @@
         'use strict';
         window.addEventListener('load', function() {
 
-           
+
             // Get the forms we want to add validation styles to
             var forms = document.getElementsByClassName('needs-validation');
             // Loop over them and prevent submission

@@ -13,10 +13,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Admin\Controller;
 //use JWTAuth;
-use http\Client\Response;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Calllog;
@@ -92,10 +94,10 @@ class ApiController extends Controller
                     'location' => $request->input('location')
                 ];
                 //
-                $check_call_id = Call::where('id',$data['call_id'])->first();
+                $check_call_id = Call::where('id',$data['call_id'])->where("status",0)->first();
                 if($check_call_id){
                     $call = Calllog::create($data);
-                    if ($call) {
+                    if($call){
                         $this->respon['status'] = true;
                         $this->respon['message'] = __('api.success');
                         $this->respon['data'] = $call;
@@ -105,8 +107,8 @@ class ApiController extends Controller
                     }
                 }else{
                     return response()->json([
-                        'code'=>'400',
-                        'message'=>"undefined call id",
+                        'status'=>'false',
+                        'message'=>'this call id is not correct',
                         'data'=>(object)[],
                         'error_type'=>0
                     ],400);
@@ -158,7 +160,7 @@ class ApiController extends Controller
                     'ip' => $request->input('ip'),
                     'location' => $request->input('location')
                 ];
-                $check_facebook_log = ChatFaceBook::where('id',$data['facebook_id'])->first();
+                $check_facebook_log = ChatFaceBook::where('id',$data['facebook_id'])->where("status",0)->first();
                 if($check_facebook_log){
                     $cfb = Chatfblog::create($data);
                     if ($cfb) {
@@ -222,7 +224,7 @@ class ApiController extends Controller
                     'ip'  => $request->input('ip'),
                     'location'   => $request->input('location')
                 ];
-                $check_zalo_id = ChatZalo::where('id',$data['zalo_id'])->first();
+                $check_zalo_id = ChatZalo::where('id',$data['zalo_id'])->where("status",0)->first();
                 //
                 if($check_zalo_id){
                     $czl = Chatzalolog::create($data);
@@ -295,7 +297,7 @@ class ApiController extends Controller
                     'mobile' => $request->input('mobile'),
                     'description' => $request->input('description')
                 ];
-                $check_contact_id = Contact::where('id',$data['lienhe_id'])->first();
+                $check_contact_id = Contact::where('id',$data['lienhe_id'])->where("status",0)->first();
                 if($check_contact_id){
                     //
                     $contact = Contactlog::create($data);
@@ -358,7 +360,7 @@ class ApiController extends Controller
                     'ip'  => $request->input('ip'),
                     'location'   => $request->input('location')
                 ];
-                $check_map_id = Maps::where('id',$data['map_id'])->first();
+                $check_map_id = Maps::where('id',$data['map_id'])->where("status",0)->first();
                 if($check_map_id){
                     //
                     $map = Maplog::create($data);
@@ -388,18 +390,8 @@ class ApiController extends Controller
         }
         return response()->json($this->respon);
     }
-    public  function chart(Request $request){
-//        $requestData=$request->all();
-//        $user_id=Auth::id();
-//        $facelog=Chatfblog::where('token',$request->input('token'))->first();
-//        $data=[
-//            'id'=>$facelog->id,
-//            'user_id'=>$facelog->user_id,
-//            'facebook_id'=>$facelog->facebook_id,
-//            'ip'=>$facelog->ip,
-//            'location'=>$facelog->location,
-//            'created_at'=>$facelog->created_at,
-//        ];
+    public  function chart(Request $request)
+    {
         function validateDate($date, $format = 'Y-m-d')
         {
             $d = DateTime::createFromFormat($format, $date);
@@ -414,135 +406,198 @@ class ApiController extends Controller
         $fblog=[];
         $carbon = now();
         $now = $carbon->toDateString();
-        if(isset($requestData['date1']) && isset($requestData['date2'])){
-            $date1=validateDate($requestData['date1']);
-            $date2=validateDate($requestData['date2']);
-            if($date1 == true && $date2 == true){
-                $date1=($requestData['date1']);
-                $date2=($requestData['date2']);
-                if ($requestData['date1'] == $requestData['date2']) {
-                    $zalolog = DB::select("select  (`created_at`) , count(`id`) as count from chatzalo_log where date (`created_at`)=date ('$date1')  group by hour (`created_at`)");
-                    $contactlog = DB::select("select (`created_at`), count(`id`) as count from lienhe_log where date (`created_at`)=date ('$date1')  group by  hour (`created_at`)");
-                    $maplog = DB::select("select (`created_at`) , count(`id`) as count from maps_log where date (`created_at`)=date ('$date1')  group by  hour (`created_at`)");
-                    $calllog = DB::select("select (`created_at`) , count(`id`) as count from call_log where date (`created_at`)=date ('$date1')  group by  hour (`created_at`)");
-                    $fblog = DB::select("select (`created_at`) , count(`id`) as count from chatfb_log where date (`created_at`)=date ('$date1')  group by  hour (`created_at`)");
-                    $data = [
-                        'zalolog' => $zalolog,
-                        'contactlog' => $contactlog,
-                        'maplog' => $maplog,
-                        'fblog' => $fblog,
-                        'calllog' => $calllog,
-                        'date_format' => 'hours'
-                    ];
-                } else if($requestData['date1'] < $requestData['date2']) {
-                    $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2') group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $data = [
-                        'zalolog' => $zalolog,
-                        'contactlog' => $contactlog,
-                        'maplog' => $maplog,
-                        'fblog' => $fblog,
-                        'calllog' => $calllog,
-                        'date_format' => 'date',
-                        'date1' => $date1,
-                        'date2' => $date2,
+        $user = Users::where('token', $request->input('token'))->first();
+        if($user){
+            $user_id = $user->id;
+            if(!empty($requestData['selectdate'])) {
+                switch ($requestData['selectdate']) {
+                    case 1:
+                        Session::put("selectdate", 1);
+                        break;
+                    case 2:
+                        Session::put("selectdate", 2);
+                        break;
+                    case 3:
+                        Session::put("selectdate", 3);
+                        break;
+                    case 4:
+                        Session::put("selectdate", 4);
+                        break;
+                    case 5:
+                        Session::put("selectdate", 5);
+                        break;
+                    case 6:
+                        Session::put("selectdate", 6);
+                        break;
+                    case 7:
+                        Session::put("selectdate", 7);
+                        break;
+                    case 8:
+                        Session::put("selectdate", 8);
+                        break;
+                    case 9:
+                        Session::put("selectdate", 9);
+                        break;
+                }
+            }
+            if(isset($requestData['date1']) && isset($requestData['date2'])){
+                if($requestData['date1']==$requestData['date2']){
+                    Session::put("date1",$requestData['date1']);
+                    Session::put("date2",$requestData['date2']);
+                }
+                else{
+                    Session::put("date1",$requestData['date1']);
+                    Session::put("date2",$requestData['date2']);
+                }
+            } else if(isset($requestData['date1'])){
+                Session::put("date1",$requestData['date1']);
+            } elseif (isset($requestData['date2'])){
+                Session::put("date2",$requestData['date2']);
+            }
+            if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                $date1=validateDate(Session::get("date1"));
+                $date2=validateDate(Session::get("date2"));
+                if($date1 == true && $date2 == true){
+                    $date1=(Session::get("date1"));
+                    $date2=(Session::get("date2"));
+                    if (Session::get("date1") == Session::get("date2")) {
+                        $zalolog = DB::select("select  (`created_at`) , count(`id`) as count from chatzalo_log where date (`created_at`)=date ('$date1') AND (`user_id`)=('$user_id') AND `status` = 0 group by hour (`created_at`)");
+                        $contactlog = DB::select("select (`created_at`), count(`id`) as count from lienhe_log where date (`created_at`)=date ('$date1') AND (`user_id`)= ('$user_id') AND `status` = 0  group by  hour (`created_at`)");
+                        $maplog = DB::select("select (`created_at`) , count(`id`) as count from maps_log where date (`created_at`)=date ('$date1') AND (`user_id`)= ('$user_id') AND `status` = 0  group by  hour (`created_at`)");
+                        $calllog = DB::select("select (`created_at`) , count(`id`) as count from call_log where date (`created_at`)=date ('$date1') AND (`user_id`)= ('$user_id') AND `status` = 0  group by  hour (`created_at`)");
+                        $fblog = DB::select("select (`created_at`) , count(`id`) as count from chatfb_log where date (`created_at`)=date ('$date1') AND (`user_id`)= ('$user_id') AND `status` = 0  group by  hour (`created_at`)");
 
-                    ];
+                        $data = [
+                            'zalolog' => $zalolog,
+                            'contactlog' => $contactlog,
+                            'maplog' => $maplog,
+                            'fblog' => $fblog,
+                            'calllog' => $calllog,
+                            'date_format' => 'hours'
+                        ];
+                    } else if(Session::get("date1") < Session::get("date2")) {
+                        $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2') AND (`user_id`)=('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2') AND (`user_id`)=('$user_id') AND `status` = 0   group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2')  AND (`user_id`)=('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date ('$date2') AND (`user_id`)=('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2') AND (`user_id`)=('$user_id') AND `status` = 0    group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+
+                        $data = [
+                            'zalolog' => $zalolog,
+                            'contactlog' => $contactlog,
+                            'maplog' => $maplog,
+                            'fblog' => $fblog,
+                            'calllog' => $calllog,
+                            'date_format' => 'date',
+                            'date1' => $date1,
+                            'date2' => $date2,
+
+                        ];
+                    }else{
+                        return response()->json([
+                            'code'=>400,
+                            'message'=>'date1 cannot bigger than date2'
+                        ],400);
+                    }
                 }else{
                     return response()->json([
                         'code'=>400,
-                        'message'=>'date1 cannot bigger than date2'
+                        'message'=>'Invalid date'
                     ],400);
                 }
-            }else{
-                return response()->json([
-                    'code'=>400,
-                    'message'=>'Invalid date'
-                ],400);
-            }
-        }else if(isset($requestData['date1'])){
-            $date1 = validateDate($requestData['date1']);
-            if($date1 == true ){
-                $date1 = $requestData['date1'];
-                $date2 = $now;
-                if($requestData['date1'] <= $date2){
-                    $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $data = [
-                        'zalolog' => $zalolog,
-                        'contactlog' => $contactlog,
-                        'maplog' => $maplog,
-                        'fblog' => $fblog,
-                        'calllog' => $calllog,
-                        'date_format' => 'date',
-                        'date1' => $date1,
-                        'date2' => $date2,
-                    ];
+            }else if(!empty(Session::get("date1"))){
+                $date1 = validateDate(Session::get("date1"));
+                if($date1 == true ){
+                    $date1 = Session::get("date1");
+                    $date2 = $now;
+                    if(Session::get("date1") <= $date2){
+                        $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+
+                        $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+
+
+                        $data = [
+                            'zalolog' => $zalolog,
+                            'contactlog' => $contactlog,
+                            'maplog' => $maplog,
+                            'fblog' => $fblog,
+                            'calllog' => $calllog,
+                            'date_format' => 'date',
+                            'date1' => $date1,
+                            'date2' => $date2,
+                        ];
+                    }else{
+                        return response()->json([
+                            'code'=>400,
+                            'message'=>'date1 cannot greater than date2(date2 = now)!!'
+                        ],400);
+                    }
                 }else{
                     return response()->json([
                         'code'=>400,
-                        'message'=>'date1 cannot greater than date2(date2 = now)!!'
+                        'message'=>'Invalid date'
                     ],400);
                 }
-            }else{
-                return response()->json([
-                    'code'=>400,
-                    'message'=>'Invalid date'
-                ],400);
-            }
-        }else if(isset($requestData['date2'])){
-            $date1 = $now;
-            $date2 = validateDate($requestData['date2']);
-            if($date2 == true){
-                $date2 = ($requestData['date2']);
-                if($requestData['date2'] >= $date1){
-                    $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2') group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2')  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-                    $data = [
-                        'zalolog' => $zalolog,
-                        'contactlog' => $contactlog,
-                        'maplog' => $maplog,
-                        'fblog' => $fblog,
-                        'calllog' => $calllog,
-                        'date_format' => 'date',
-                        'date1' => $date1,
-                        'date2' => $date2,
-                    ];
+            }else if(!empty(Session::get("date2"))){
+                $date1 = $now;
+                $date2 = validateDate(Session::get("date2"));
+                if($date2 == true){
+                    $date2 = (Session::get("date2"));
+                    if(Session::get("date2") >= $date1){
+                        $zalolog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $contactlog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $maplog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <= date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $calllog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where date(`created_at`)>=date('$date1') AND date(`created_at`) <=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                        $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where date(`created_at`)>=date('$date1') AND date(`created_at`)<=date('$date2') AND (`user_id`)= ('$user_id') AND `status` = 0  group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+
+
+                        $data = [
+                            'zalolog' => $zalolog,
+                            'contactlog' => $contactlog,
+                            'maplog' => $maplog,
+                            'fblog' => $fblog,
+                            'calllog' => $calllog,
+                            'date_format' => 'date',
+                            'date1' => $date1,
+                            'date2' => $date2,
+                        ];
+                    }else{
+                        return response()->json([
+                            'code'=>400,
+                            'message'=>'date2 cannot smaller than date1(date1 = now)!!'
+                        ],400);
+                    }
                 }else{
                     return response()->json([
                         'code'=>400,
-                        'message'=>'date2 cannot smaller than date1(date1 = now)!!'
+                        'message'=>'Invalid date'
                     ],400);
                 }
-            }else{
-                return response()->json([
-                    'code'=>400,
-                    'message'=>'Invalid date'
-                ],400);
+            } else{
+                $zalolog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log where (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                $contactlog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log where (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                $maplog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log where (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                $calllog=DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log where (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+                $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log where (`user_id`)= ('$user_id') AND `status` = 0 group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
+
+
+                $data=[
+                    'zalolog'=>$zalolog,
+                    'contactlog'=>$contactlog,
+                    'maplog'=>$maplog,
+                    'fblog'=>$fblog,
+                    'calllog'=>$calllog,
+                    'date_format'=>'all'
+                ];
             }
-        } else{
-            $zalolog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatzalo_log group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-            $contactlog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from lienhe_log group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-            $maplog= DB::select("select DATE(created_at) as created_at, count(`id`) as count from maps_log group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-            $calllog=DB::select("select DATE(created_at) as created_at, count(`id`) as count from call_log group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-            $fblog = DB::select("select DATE(created_at) as created_at, count(`id`) as count from chatfb_log group by DATE_FORMAT(`created_at`, '%Y-%m-%d')");
-            $data=[
-                'zalolog'=>$zalolog,
-                'contactlog'=>$contactlog,
-                'maplog'=>$maplog,
-                'fblog'=>$fblog,
-                'calllog'=>$calllog,
-                'date_format'=>'all'
-            ];
+        }else{
+            return response()->json([
+               'message'=>'token is not require',
+               'code'=>'400',
+            ],400);
         }
 
         $this->respon['status']   = true;
@@ -611,15 +666,23 @@ class ApiController extends Controller
 
         $requestData = $request->all();
         $user = Users::where('token',$request->input('token'))->first();
+        if($user){
+            $requestData['author']=$user->username;
+            $requestData['content'];
+            app('App\Http\Controllers\Admin\ChatController')->store($requestData);
 
-        $requestData['author']=$user->username;
-        $requestData['conten']=$requestData['content'];
-        app('App\Http\Controllers\Admin\ChatController')->store($requestData);
+            $this->respon['status']   = true;
+            $this->respon['message']  = __('api.success');
+            $this->respon['data']     = $requestData['content'];
+            $this->respon['error_type'] = 1;
+        }else{
+            return response()->json([
+                'status'=>false,
+                'message'=>'Your token is not correct',
+                'data'=>(object)[]
+            ],400);
+        }
 
-        $this->respon['status']   = true;
-        $this->respon['message']  = __('api.success');
-        $this->respon['data']     = $requestData['content'];
-        $this->respon['error_type'] = 1;
         return response()->json($this->respon);
     }
     public function mail(Request $request){
@@ -647,7 +710,7 @@ class ApiController extends Controller
 
             //Recipients
             //gửi từ ai
-            $mail->setFrom('abc@gmail.com', 'Lưu Duy Linh');
+            $mail->setFrom('duylinh180998@gmail.com', 'Lưu Duy Linh');
             //gửi tới ai
             $mail->addAddress($request->input('email'));     // Add a recipient
 //    $mail->addAddress('ellen@example.com');               // Name is optional

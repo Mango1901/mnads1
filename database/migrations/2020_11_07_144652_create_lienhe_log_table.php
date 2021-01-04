@@ -21,14 +21,15 @@ class CreateLienheLogTable extends Migration
             $table->String('location');
             $table->String('mobile',20);
             $table->String('description');
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
         Schema::table('lienhe_log',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
         Schema::table('lienhe_log',function (Blueprint $table){
-            $table->foreign('lienhe_id')->references('id')->on('lienhe');
+            $table->foreign('lienhe_id')->references('id')->on('lienhe')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

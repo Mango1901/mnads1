@@ -19,15 +19,16 @@ class CreateCalllogTable extends Migration
             $table->BigInteger('call_id')->unsigned();
             $table->String('ip');
             $table->String('location');
+            $table->Integer('status')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
         });
 
         Schema::table('call_log',function (Blueprint $table){
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
         Schema::table('call_log',function (Blueprint $table){
-            $table->foreign('call_id')->references('id')->on('call');
+            $table->foreign('call_id')->references('id')->on('call')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

@@ -26,7 +26,7 @@ table, th, td {
       @foreach ($data as $item)
        <tr style="text-align: center;" >
         <th scope="row">{{ $stt++ }}</th>
-        <td>{{$item->Maps->map}} </td>
+        <td>{{$item->Maps->map_title}} </td>
         <td>{{$item->ip}} </td>
         <td>{{$item->location}} </td>
         <td>{{$item->created_at}} </td>

@@ -1,5 +1,5 @@
-
-const WEBSITE = "http://localhost/mnads";
+const WEBSITE = window.location.origin;
+// const WEBSITE = 'http://localhost';
 //const WEBSITE = "http://adslead.asia"
 
 // The pattern to split each row in the stack trace string
@@ -52,7 +52,7 @@ $(document).ready( function () {
             	loadButtons(data.data.call[0].phone_number,data.data.call[0].id,data.data.fb[0].facebook_id,
             		data.data.fb[0].id,data.data.zalo[0].zalo_name,data.data.zalo[0].id);
 
-            	//HANDLE MAP AND CONTACT 
+            	//HANDLE MAP AND CONTACT
 			 	$('#pd_contact').click(function() {
 			  		loadContactForm(data.data.contact[0].number,data.data.contact[0].description,data.data.contact[0].id);
 			  	});
@@ -60,7 +60,7 @@ $(document).ready( function () {
 				$('#pd_map_button').click(function() {
 			  		loadMap(data.data.map[0].map,data.data.map[0].id);
 			  	});
-			
+
 
             } else {
                 $('#success').fadeIn(1000).append('<p>' + data.posted + '</p>'); //If successful, than throw a success message
@@ -72,7 +72,7 @@ $(document).ready( function () {
 	    	}
 	  	}
     });
- 
+
 
 });
 
@@ -81,11 +81,11 @@ function loadButtons(callphone,call_id,facebook,facebook_id,zalo,zalo_id) {
 
 	//MAKE BUTTON CALL
 	var str = loadLeftBoard(callphone,call_id,facebook,facebook_id,zalo,zalo_id);
-	
+
 	//MAKE LEFT BOARD
 	str = str + makeButtonCall(callphone,call_id);
 
-	$("body").append(str);	
+	$("body").append(str);
 
 }
 
@@ -157,7 +157,7 @@ function writecontactlog(contact_id) {
 		        }
 		     });
         }
-    );	
+    );
 }
 
 
@@ -187,7 +187,7 @@ function writelogcall(call_id) {
 		        }
 		     });
         }
-    );	
+    );
 }
 
 //WRITE FACEBOOK MESSAGE LOG
@@ -216,7 +216,7 @@ function writefacebookLog(facebook_id) {
 		        }
 		     });
         }
-    );	
+    );
 }
 
 //WRITE ZALO LOG
@@ -245,7 +245,7 @@ function writezalolog(zalo_id) {
 		        }
 		     });
         }
-    );	
+    );
 }
 
 
@@ -275,7 +275,7 @@ function writemaplog(map_id) {
 		        }
 		     });
         }
-    );	
+    );
 }
 
 

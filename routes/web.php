@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,111 +14,142 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::get('', 'Admin\AdminController@login');
-Route::get('/login', 'Admin\AdminController@login');
-Route::get('/forgot-password', 'Admin\AdminController@forgotpassword');
-Route::get('/register', 'Admin\AdminController@register');
+Auth::routes(['verify' => true]);
+
+Route::get('', 'Admin\AdminController@Home');
+Route::get('/login', 'Admin\AdminController@login')->name("login");
+Route::get('/forgot-password', 'Admin\AdminController@forgotpassword')->name('forgot.password');
+Route::get('/register', 'Admin\AdminController@register')->name("register");
 Route::post('/create', 'Admin\AdminController@create');
 Route::post('/sent', 'Admin\AdminController@sent');
 Route::post('/execlogin', 'Admin\AdminController@execlogin');
+Route::get('/extend-date-view', 'Admin\AdminController@extend_date_view')->name('extend.date.view');
+Route::post('/extend-date', 'Admin\AdminController@extend_date')->name('extend.date');
+Route::get('/reset-password', 'Admin\AdminController@reset_password')->name('reset.password');
+Route::post('/reset-password-save', 'Admin\AdminController@reset_password_save')->name('reset.password.save');
 
 
-
+//language
+Route::group(['prefix'=>'language','as'=>'language.'], function() {
+    Route::get('{language}',['as'=>'index','uses'=>'Admin\LanguageController@index']);
+});
+//facebook-login
+Route::get('/login-facebook', 'Admin\SocialController@login_facebook');
+Route::get('/callback/facebook', 'Admin\SocialController@callback_facebook');
+//google-login
+Route::get('/login-google','Admin\SocialController@login_google');
+Route::get('/google/callback','Admin\SocialController@callback_google');
 ///backend
-Route::group(['middleware' => 'checkAdminLogin', 'prefix' => '', 'namespace' => 'Admin'], function() {
+Route::group(['middleware' => ['checkAdminLogin','verified'], 'prefix' => '', 'namespace' => 'Admin'], function() {
 
 	Route::get('/dashboard', 'ChartController@index');
-	Route::get('/user/profile', 'UserController@profile');
-    Route::get('/user/showpassword', 'UserController@showpassword');
-    Route::post('/user/changepassword', 'UserController@changepassword');
-	Route::post('/user/updateprofile', 'UserController@updateprofile');
-	Route::get('/user/logout', 'UserController@logout');
-
 	//user
-	Route::get('/index', 'UserController@index');
-	Route::get('/user/index', 'UserController@index');
-	Route::get('create', 'UserController@create');
-	Route::post('user/store', 'UserController@store');
-	Route::post('user/update', 'UserController@update');
-
-	Route::get('user/edit/{id}', 'UserController@edit');
-	Route::get('user/delete/{id}', 'UserController@delete');
-	//admin
-
+    Route::group(['prefix'=>'user','as'=>'user.'], function(){
+        Route::get('profile',['as'=>'profile','uses'=>'UserController@profile']);
+        Route::get('create',['as'=>'create','uses'=>'UserController@create']);
+        Route::get('showpassword', ['as'=>'showpassword','uses'=>'UserController@showpassword']);
+        Route::post('change-password', ['as'=>'change.password','uses'=>'UserController@changepassword']);
+        Route::post('update-profile', ['as'=>'update.profile','uses'=>'UserController@updateprofile']);
+        Route::get('logout', ['as'=>'logout','uses'=>'UserController@logout']);
+        Route::get('index', ['as'=>'index','uses'=>'UserController@index']);
+        Route::post('store', ['as'=>'store','uses'=>'UserController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'UserController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'UserController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'UserController@delete']);
+        Route::get('change-user/{id}', ['as'=>'change.user','uses'=>'UserController@change_user']);
+    });
 	//call
-	Route::get('call/index', 'CallController@index');
-	Route::get('call/create', 'CallController@create');
-	Route::post('call/store', 'CallController@store');
-	Route::post('call/update', 'CallController@update');
-	Route::get('call/edit/{id}', 'CallController@edit');
-	Route::get('call/delete/{id}', 'CallController@delete');
-
-	//chatfacebook
-	Route::get('chatfacebook/index', 'ChatFaceBookController@index');
-	Route::get('chatfacebook/create', 'ChatFaceBookController@create');
-	Route::post('chatfacebook/store', 'ChatFaceBookController@store');
-	Route::post('chatfacebook/update', 'ChatFaceBookController@update');
-	Route::get('chatfacebook/edit/{id}', 'ChatFaceBookController@edit');
-	Route::get('chatfacebook/delete/{id}', 'ChatFaceBookController@delete');
-
-	//chatzalo
-	Route::get('chatzalo/index', 'ChatZaloController@index');
-	Route::get('chatzalo/create', 'ChatZaloController@create');
-	Route::post('chatzalo/store', 'ChatZaloController@store');
-	Route::post('chatzalo/update', 'ChatZaloController@update');
-	Route::get('chatzalo/edit/{id}', 'ChatZaloController@edit');
-	Route::get('chatzalo/delete/{id}', 'ChatZaloController@delete');
-
-	//contact
-	Route::get('contact/index', 'ContactController@index');
-	Route::get('contact/create', 'ContactController@create');
-	Route::post('contact/store', 'ContactController@store');
-	Route::post('contact/update', 'ContactController@update');
-	Route::get('contact/edit/{id}', 'ContactController@edit');
-	Route::get('contact/delete/{id}', 'ContactController@delete');
-
-	//maps
-	Route::get('maps/index', 'MapsController@index');
-	Route::get('maps/create', 'MapsController@create');
-	Route::post('maps/store', 'MapsController@store');
-	Route::post('maps/update', 'MapsController@update');
-	Route::get('maps/edit/{id}', 'MapsController@edit');
-	Route::get('maps/delete/{id}', 'MapsController@delete');
-
+    Route::group(['prefix'=>'call','as'=>'call.'], function(){
+        Route::get('index', ['as'=>'index','uses'=>'CallController@index']);
+        Route::get('create', ['as'=>'create','uses'=>'CallController@create']);
+        Route::post('store', ['as'=>'store','uses'=>'CallController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'CallController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'CallController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'CallController@delete']);
+    });
+    //chatfacebook
+    Route::group(['prefix'=>'chatfacebook','as'=>'chatfacebook.'], function(){
+        Route::get('index', ['as'=>'index','uses'=>'ChatFaceBookController@index']);
+        Route::get('create', ['as'=>'create','uses'=>'ChatFaceBookController@create']);
+        Route::post('store', ['as'=>'store','uses'=>'ChatFaceBookController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'ChatFaceBookController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'ChatFaceBookController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'ChatFaceBookController@delete']);
+    });
+    //chatzalo
+    Route::group(['prefix'=>'chatzalo','as'=>'chatzalo.'], function(){
+        Route::get('index', ['as'=>'index','uses'=>'ChatZaloController@index']);
+        Route::get('create', ['as'=>'create','uses'=>'ChatZaloController@create']);
+        Route::post('store', ['as'=>'store','uses'=>'ChatZaloController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'ChatZaloController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'ChatZaloController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'ChatZaloController@delete']);
+    });
+    //contact
+    Route::group(['prefix'=>'contact','as'=>'contact.'], function(){
+        Route::get('index', ['as'=>'index','uses'=>'ContactController@index']);
+        Route::get('create', ['as'=>'create','uses'=>'ContactController@create']);
+        Route::post('store', ['as'=>'store','uses'=>'ContactController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'ContactController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'ContactController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'ContactController@delete']);
+    });
+    //maps
+    Route::group(['prefix'=>'maps','as'=>'maps.'], function(){
+        Route::get('index', ['as'=>'index','uses'=>'MapsController@index']);
+        Route::get('create', ['as'=>'create','uses'=>'MapsController@create']);
+        Route::post('store', ['as'=>'store','uses'=>'MapsController@store']);
+        Route::post('update', ['as'=>'update','uses'=>'MapsController@update']);
+        Route::get('edit/{id}', ['as'=>'edit','uses'=>'MapsController@edit']);
+        Route::get('delete/{id}', ['as'=>'delete','uses'=>'MapsController@delete']);
+    });
 	//calllog
-    Route::get('calllog/index','CalllogController@index');
-    Route::get('calllog/download','CalllogController@index');
-
+    Route::group(['prefix'=>'calllog','as'=>'calllog.'], function(){
+        Route::get('index',['as'=>'index','uses'=>'CalllogController@index']);
+        Route::get('index-ajax',['as'=>'index.ajax','uses'=>'CalllogController@index_ajax']);
+        Route::get('download',['as'=>'download','uses'=>'CalllogController@index']);
+    });
     //chatfblog
-    Route::get('chatfblog/index','ChatfblogController@index');
-    Route::get('chatfblog/download','ChatfblogController@index');
-
+    Route::group(['prefix'=>'chatfblog','as'=>'chatfblog.'], function(){
+        Route::get('index',['as'=>'index','uses'=>'ChatfblogController@index']);
+        Route::get('index-ajax',['as'=>'index.ajax','uses'=>'ChatfblogController@index_ajax']);
+        Route::get('download',['as'=>'download','uses'=>'ChatfblogController@index']);
+    });
     //chatzalolog
-    Route::get('chatzalolog/index','ChatzalologController@index');
-    Route::get('chatzalolog/download','ChatzalologController@index');
-
+    Route::group(['prefix'=>'chatzalolog','as'=>'chatzalolog.'], function(){
+        Route::get('index',['as'=>'index','uses'=>'ChatzalologController@index']);
+        Route::get('index-ajax',['as'=>'index.ajax','uses'=>'ChatzalologController@index_ajax']);
+        Route::get('download',['as'=>'download','uses'=>'ChatzalologController@index']);
+    });
     //contactlog
-    Route::get('contactlog/index','ContactlogController@index');
-    Route::get('contactlog/download','ContactlogController@index');
-
+    Route::group(['prefix'=>'contactlog','as'=>'contactlog.'], function(){
+        Route::get('index',['as'=>'index','uses'=>'ContactlogController@index']);
+        Route::get('index-ajax',['as'=>'index.ajax','uses'=>'ContactlogController@index_ajax']);
+        Route::get('download',['as'=>'download','uses'=>'ContactlogController@index']);
+    });
     //maplog
-    Route::get('maplog/index','MaplogController@index');
-    Route::get('maplog/download','MaplogController@index');
+    Route::group(['prefix'=>'maplog','as'=>'maplog.'], function(){
+        Route::get('index',['as'=>'index','uses'=>'MaplogController@index']);
+        Route::get('index-ajax',['as'=>'index.ajax','uses'=>'MaplogController@index_ajax']);
+        Route::get('download',['as'=>'download','uses'=>'MaplogController@index']);
+    });
     //chart
-
-    Route::get('chart/index','ChartController@index');
-
-    Route::get('chat/index','ChatController@index');
-    Route::post('chat/store','ChatController@store');
-
-    Route::get('language/{language}','LanguageController@index')->name('language.index');
-
+    Route::group(['prefix'=>'chart','as'=>'chart.'], function() {
+        Route::get('index', ['as'=>'index','uses'=>'ChartController@index']);
+    });
+    //chat
+    //    Route::get('chat/index','ChatController@index');
+    //    Route::post('chat/store','ChatController@store')->name('chat.store');
     //google-ads
-    route::get('/getAuthentication','GoogleAdsController@getAuthentication')->name('get.Authentication');
-    route::get('/getAccessTokenRefresh','GoogleAdsController@getAccessTokenRefresh');
-    route::get('/oauth2callback','GoogleAdsController@Auth_save');
-    route::get('/getCampaignDetails','GoogleAdsController@getCampaignDetails')->name('get.campaign.details');
-    route::get('/google-report-list','GoogleAdsController@google_report_list')->name('google.report.list');
+    Route::group(['prefix'=>'googleAds','as'=>'googleAds.'], function() {
+        route::get('/index',['as'=>'index','uses'=>'GoogleAdsController@google_report_list']);
+        route::get('/getAuthentication',['as'=>'get.Authentication','uses'=>'GoogleAdsController@getAuthentication']);
+        route::post('/get-google-report',['as'=>'get.google.report','uses'=>'GoogleAdsController@get_google_report']);
+        route::get('/delete-google-report',['as'=>'delete.google.report','uses'=>'GoogleAdsController@delete_google_report']);
+        route::get('/getCampaignDetails',['as'=>'get.campaign.details','uses'=>'GoogleAdsController@getCampaignDetails']);
+    });
+
+    route::get('/oauth2callback','GoogleAdsController@Auth_save');//unique
 
 	Route::get('{first}/{second}/{third}', 'RoutingController@thirdLevel')->name('third');
 	Route::get('{first}/{second}', 'RoutingController@secondLevel')->name('second');

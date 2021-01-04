@@ -18,7 +18,8 @@ class CreateChatsTable extends Migration
             $table->string('author');
             $table->text('content');
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamp('updated_at')->DEFAULT('0000-00-00 00:00:00');
+            $table->Integer('status')->default(0);
         });
     }
 

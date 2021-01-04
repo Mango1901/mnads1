@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Calllog;
+use Illuminate\Support\Facades\Session;
 use PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\Paginator;
+use DateTime;
 
 class CalllogController extends Controller
 {
@@ -14,70 +15,333 @@ class CalllogController extends Controller
     public $data;
     private $perPage;
 
-
     public function __construct(){
         $this->model=new Calllog();
         $this->data['controller']=__CLASS__;
         $this->perPage=config('admin.perpage');
-
     }
     public function getData($requestData) {
 
-        $user_id=Auth::id();
+        $user_id=Auth::user()->id;
 
-        if(isset($requestData['date1'])||isset($requestData['date2'])){
+        if(!empty($requestData['paginator_call'])){
+            switch ($requestData['paginator_call']) {
+                case 1:
+                    Session::put("paginator_call",1);
+                    break;
+                case 2:
+                    Session::put("paginator_call",2);
+                    break;
+                case 3:
+                    Session::put("paginator_call",3);
+                    break;
+                case 4:
+                    Session::put("paginator_call",4);
+                    break;
+            }
+        }
+        if(!empty($requestData['selectdate'])) {
+            switch ($requestData['selectdate']) {
+                case 1:
+                    Session::put("selectdate", 1);
+                    break;
+                case 2:
+                    Session::put("selectdate", 2);
+                    break;
+                case 3:
+                    Session::put("selectdate", 3);
+                    break;
+                case 4:
+                    Session::put("selectdate", 4);
+                    break;
+                case 5:
+                    Session::put("selectdate", 5);
+                    break;
+                case 6:
+                    Session::put("selectdate", 6);
+                    break;
+                case 7:
+                    Session::put("selectdate", 7);
+                    break;
+                case 8:
+                    Session::put("selectdate", 8);
+                    break;
+                case 9:
+                    Session::put("selectdate", 9);
+                    break;
+            }
+        }
+        if(isset($requestData['date1']) && isset($requestData['date2'])){
             if($requestData['date1']==$requestData['date2']){
-                $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',$requestData['date2'])->orderBy('created_at', 'DESC')->paginate(25);
+                Session::put("date1",$requestData['date1']);
             }
             else{
-
-                $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',$requestData['date1'])->whereDate('created_at','<=',$requestData['date2'])->orderBy('created_at', 'DESC')->paginate(25);
+               Session::put("date1",$requestData['date1']);
+               Session::put("date2",$requestData['date2']);
             }
-
-            return  $this->data;
+        } else if(isset($requestData['date1'])){
+               Session::put("date1",$requestData['date1']);
+        } elseif (isset($requestData['date2'])){
+               Session::put("date2",$requestData['date2']);
         }
-
-        if(isset($requestData['paginator'])){
-            if($requestData['paginator']=="1"){
-                $this->data['data']=$this->model->where('user_id',$user_id)->orderBy('created_at', 'DESC')->paginate(20);
-                $this->data['paginator']=1;
-
-            }elseif ($requestData['paginator']=="2"){
-                $this->data['data']=$this->model->where('user_id',$user_id)->orderBy('created_at', 'DESC')->paginate(30);
-                $this->data['paginator']=2;
-            }
-            elseif ($requestData['paginator']=="3"){
-                $this->data['data']=$this->model->where('user_id',$user_id)->orderBy('created_at', 'DESC')->paginate(40);
-                $this->data['paginator']=3;
-            }
-            elseif ($requestData['paginator']=="4"){
-                $this->data['data']=$this->model->where('user_id',$user_id)->orderBy('created_at', 'DESC')->paginate(50);
-                $this->data['paginator']=4;
-            }
-
-            return  $this->data;
-
+        switch (Session::get("paginator_call")) {
+            case 1:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                    else{
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else if(!empty(Session::get("date2"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else{
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(20);
+                }
+                break;
+            case 2:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(30);
+                    }
+                    else{
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(30);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(30);
+                } else if(!empty(Session::get("date2"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(30);
+                } else{
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(30);
+                }
+                break;
+            case 3:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(40);
+                    }
+                    else{
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(40);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(40);
+                } else if(!empty(Session::get("date2"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(40);
+                } else{
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(40);
+                }
+                break;
+            case 4:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(50);
+                    }
+                    else{
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(50);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(50);
+                } else if(!empty(Session::get("date2"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(50);
+                } else{
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(50);
+                }
+                break;
+            default:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                    else{
+                        $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else if(!empty(Session::get("date2"))){
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else{
+                    $this->data['data']=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(20);
+                }
         }
-
-        $this->data['data']=$this->model->where('user_id',$user_id)->orderBy('created_at', 'DESC')->paginate(20);
         return  $this->data;
-
-
     }
-
-
-    public function index(Request $request){
-
-        $requestData=$request->all();
+    public function index(Request $request)
+    {
+        $requestData = $request->all();
         $this->data = $this->getData($requestData);
 
         if (isset($request->submitbutton)) {
-            $pdf = PDF::loadView('calllog/exportpdf' , $this->data);
+            $pdf = PDF::loadView('calllog/exportpdf', $this->data);
             return $pdf->stream('serial_codes.pdf');
-
         } else {
+            return view('calllog.index', $this->data);
+        }
+    }
+    public function index_ajax(Request $request)
+    {
+        $requestData = $request->all();
 
-            return view('calllog.index',$this->data);
+        $user_id=Auth::user()->id;
+        if(!empty($requestData['paginator_call'])){
+            switch ($requestData['paginator_call']) {
+                case 1:
+                    Session::put("paginator_call",1);
+                    break;
+                case 2:
+                    Session::put("paginator_call",2);
+                    break;
+                case 3:
+                    Session::put("paginator_call",3);
+                    break;
+                case 4:
+                    Session::put("paginator_call",4);
+                    break;
+            }
+        }
+        if(!empty($requestData['selectdate'])) {
+            switch ($requestData['selectdate']) {
+                case 1:
+                    Session::put("selectdate", 1);
+                    break;
+                case 2:
+                    Session::put("selectdate", 2);
+                    break;
+                case 3:
+                    Session::put("selectdate", 3);
+                    break;
+                case 4:
+                    Session::put("selectdate", 4);
+                    break;
+                case 5:
+                    Session::put("selectdate", 5);
+                    break;
+                case 6:
+                    Session::put("selectdate", 6);
+                    break;
+                case 7:
+                    Session::put("selectdate", 7);
+                    break;
+                case 8:
+                    Session::put("selectdate", 8);
+                    break;
+                case 9:
+                    Session::put("selectdate", 9);
+                    break;
+            }
+        }
+        if(isset($requestData['date1']) && isset($requestData['date2'])){
+            if($requestData['date1']==$requestData['date2']){
+                Session::put("date1",$requestData['date1']);
+                Session::put("date2",$requestData['date2']);
+            }
+            else{
+                Session::put("date1",$requestData['date1']);
+                Session::put("date2",$requestData['date2']);
+            }
+        } else if(isset($requestData['date1'])){
+            Session::put("date1",$requestData['date1']);
+        } elseif (isset($requestData['date2'])){
+            Session::put("date2",$requestData['date2']);
+        }
+        switch (Session::get("paginator_call")) {
+            case 1:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                    } else{
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else if(!empty(Session::get("date2"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else{
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(20);
+                }
+                break;
+            case 2:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(30);
+                    }
+                    else{
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(30);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(30);
+                } else if(!empty(Session::get("date2"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(30);
+                } else{
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(30);
+                }
+                break;
+            case 3:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(40);
+                    }
+                    else{
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(40);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(40);
+                } else if(!empty(Session::get("date2"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(40);
+                } else{
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(40);
+                }
+                break;
+            case 4:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(50);
+                    }
+                    else{
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(50);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(50);
+                } else if(!empty(Session::get("date2"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(50);
+                } else{
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(50);
+                }
+                break;
+            default:
+                if(!empty(Session::get("date1")) && !empty(Session::get("date2"))){
+                    if(Session::get("date1")==Session::get("date2")){
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                    else{
+                        $data1=$this->model->where('user_id',$user_id)->whereDate('created_at','>=',Session::get("date1"))->whereDate('created_at','<=',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                    }
+                } else if(!empty(Session::get("date1"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date1"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else if(!empty(Session::get("date2"))){
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',Session::get("date2"))->orderBy('created_at', 'DESC')->paginate(20);
+                } else{
+                    $data1=$this->model->where('user_id',$user_id)->whereDate('created_at',date("Y-m-d"))->orderBy('created_at', 'DESC')->paginate(20);
+                }
+        }
+        if($request->ajax()){
+            $stt = 1;
+            $output ="";
+            foreach ($data1 as $key => $item){
+                $output .=
+                    '<tr>'.
+                    '<th scope="row">'.$stt++.'</th>'.
+                    '<td>'.$item->Call->name. '</td>'.
+                    '<td>'.$item->ip .'</td>'.
+                    '<td>'.$item->location.'</td>'.
+                    '<td>'.$item->created_at.'</td>'.
+                    '</tr>';
+            }
+
+            $output = $output.$data1->render();
+            echo "<div style='display: none'></div>";
+            echo($output);
         }
     }
 }

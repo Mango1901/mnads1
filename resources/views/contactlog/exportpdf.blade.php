@@ -1,15 +1,24 @@
 <h1 style="text-align: center;color: orange">Cong ty thuong mai co phan phuong dong</h1>
 <style type="text/css">
-  table {
-    border-collapse: collapse;
-}
+    table {
+        border-collapse: collapse;
+        word-wrap: break-word;
+    }
+    tr th{
+        word-wrap: break-word;
+        margin: 10px 0;
+        padding: 10px 0;
+    }
 
-  table, th, td {
-    border: 1px solid black;
-}
-  body,span,table {
-      font-family: DejaVu Sans;
-  }
+    table, th, td {
+        border: 1px solid black;
+        word-wrap: break-word;
+    }
+    body,span,table {
+        font-family: DejaVu Sans;
+        word-wrap: break-word;
+    }
+
 </style>
 <table border="1"   class="table table-bordered">
     <thead>
